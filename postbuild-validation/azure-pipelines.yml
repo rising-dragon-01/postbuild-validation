@@ -1,0 +1,21 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  Target_SUBSCRIPTION_ID: 'your-subscription-id'  # Replace with your target subscription ID
+
+steps:
+- script: |
+    echo "Logging in to Azure..."
+    az login --service-principal --username $(CAF_SP_CLIENTID) --password $(CAF_SP_SECRET) --tenant $(LAUNCHPAD_TENANTID)
+    echo "Setting Azure subscription..."
+    az account set --subscription $(Target_SUBSCRIPTION_ID)
+  displayName: 'Azure Login and Subscription Setup'
+
+- script: |
+    echo "Running Python tests..."
+    python3 test.py
+  displayName: 'Run Tests'

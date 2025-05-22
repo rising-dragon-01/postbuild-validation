@@ -1,0 +1,40 @@
+trigger:
+- main
+
+pool:
+  vmImage: 'ubuntu-latest'
+
+variables:
+  PYTHON_VERSION: '3.11'
+  RESOURCE_GROUP: 'MyResourceGroup'    # <-- Set your resource group here or as a pipeline variable
+  VM_NAME: 'MyVM'                      # <-- Set your VM name here or as a pipeline variable
+
+steps:
+- task: UsePythonVersion@0
+  inputs:
+    versionSpec: '$(PYTHON_VERSION)'
+
+- script: |
+    python -m pip install --upgrade pip
+    pip install azure-identity azure-mgmt-compute azure-mgmt-network azure-mgmt-resource openpyxl
+  displayName: 'Install dependencies'
+
+- script: |
+    az login --service-principal \
+      --username $(CAF_SP_CLIENTID) \
+      --password $(CAF_SP_SECRET) \
+      --tenant $(LAUNCHPAD_TENANTID)
+    az account set --subscription $(Taget_SUBSCRIPTION_ID)
+  displayName: 'Azure CLI Login'
+
+- script: |
+    python test2.py "$(RESOURCE_GROUP)" "$(VM_NAME)"
+  workingDirectory: $(System.DefaultWorkingDirectory)
+  displayName: 'Run VM Details Script'
+
+- task: PublishBuildArtifacts@1
+  inputs:
+    PathtoPublish: '$(System.DefaultWorkingDirectory)/$(VM_NAME).xlsx'
+    ArtifactName: 'vm-details'
+    publishLocation: 'Container'
+  displayName: 'Publish VM Excel Artifact'

@@ -1,3 +1,4 @@
+# filepath: /postbuild-validation/test.py
 import os
 from azure.identity import AzureCliCredential
 from azure.mgmt.compute import ComputeManagementClient
